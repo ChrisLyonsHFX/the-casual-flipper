@@ -54,11 +54,15 @@ a {
 }
 
 .brand {
-  font-family: 'Instrument Serif', serif;
-  font-size: 28px;
-  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
-  white-space: nowrap;
+}
+
+.brand-logo {
+  display: block;
+  height: 46px;
+  width: auto;
 }
 
 .site-nav {
@@ -719,8 +723,8 @@ strong {
 }
 
 @media (max-width: 760px) {
-  .brand {
-    font-size: 24px;
+  .brand-logo {
+    height: 38px;
   }
 
   .header-inner {
