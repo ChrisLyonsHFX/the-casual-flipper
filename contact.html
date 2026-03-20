@@ -67,34 +67,73 @@
   <section class="hero hero--compact">
     <div class="hero-label">Contact</div>
     <h1>Get In Touch</h1>
-    <p class="hero-sub">For collaborations, brand partnerships, or reseller questions, Instagram DM is the fastest contact method.</p>
+    <p class="hero-sub">Send a message directly with the form below, or connect through social channels for quick replies.</p>
   </section>
 
   <section>
     <div class="container">
-      <div class="section-num">01 - Best Ways To Connect</div>
-      <h2>Direct contact channels</h2>
-      <div class="links-grid">
-        <a class="link-card" href="https://www.instagram.com/ChrisLyonsHFX" target="_blank" rel="noopener noreferrer">
-          <h4>Instagram DM</h4>
-          <p>@ChrisLyonsHFX</p>
-          <p class="small-note">Best for partnerships and quick replies</p>
-        </a>
-        <a class="link-card" href="https://www.youtube.com/@TheCasualFlipper" target="_blank" rel="noopener noreferrer">
-          <h4>YouTube</h4>
-          <p>@TheCasualFlipper</p>
-          <p class="small-note">Long-form content and comments</p>
-        </a>
-        <a class="link-card" href="https://www.tiktok.com/@Casualflipper" target="_blank" rel="noopener noreferrer">
-          <h4>TikTok</h4>
-          <p>@Casualflipper</p>
-          <p class="small-note">Quick content and updates</p>
-        </a>
-      </div>
+      <div class="section-num">01 - Contact Form</div>
+      <h2>Send a direct message</h2>
+      <div class="contact-layout">
+        <article class="card contact-form-card">
+          <h3>Contact The Casual Flipper</h3>
+          <p>This form uses the same delivery pipeline as Otterline and routes messages directly to the same inbox.</p>
+          <form id="contact-form" class="contact-form" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="name">Name</label>
+                <input id="name" name="name" type="text" maxlength="100" required autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" maxlength="255" required autocomplete="email">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="subject">Subject (Optional)</label>
+              <select id="subject" name="subject">
+                <option value="">Select a topic</option>
+                <option value="general">General Inquiry</option>
+                <option value="bug">Bug Report</option>
+                <option value="feature">Feature Request</option>
+                <option value="premium">Premium Support</option>
+                <option value="partnership">Partnership</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" rows="7" maxlength="2000" required></textarea>
+            </div>
+            <input type="text" id="company" name="company" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <button type="submit" id="contact-submit" class="btn btn-primary">Send Message</button>
+            <p id="form-status" class="form-status" aria-live="polite"></p>
+          </form>
+        </article>
 
-      <div class="callout callout-gold">
-        <span class="callout-label">Message template</span>
-        <p>For collaboration inquiries, include name, brand/company, goal, and timeline to receive a faster response.</p>
+        <div>
+          <div class="links-grid">
+            <a class="link-card" href="https://www.instagram.com/ChrisLyonsHFX" target="_blank" rel="noopener noreferrer">
+              <h4>Instagram DM</h4>
+              <p>@ChrisLyonsHFX</p>
+              <p class="small-note">Best for partnerships and quick replies</p>
+            </a>
+            <a class="link-card" href="https://www.youtube.com/@TheCasualFlipper" target="_blank" rel="noopener noreferrer">
+              <h4>YouTube</h4>
+              <p>@TheCasualFlipper</p>
+              <p class="small-note">Long-form content and comments</p>
+            </a>
+            <a class="link-card" href="https://www.tiktok.com/@Casualflipper" target="_blank" rel="noopener noreferrer">
+              <h4>TikTok</h4>
+              <p>@Casualflipper</p>
+              <p class="small-note">Quick content and updates</p>
+            </a>
+          </div>
+
+          <div class="callout callout-gold">
+            <span class="callout-label">Message template</span>
+            <p>For collaboration inquiries, include name, brand/company, goal, and timeline to receive a faster response.</p>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -106,5 +145,75 @@
     <p>Collaboration and partnership inquiries are welcome.</p>
   </div>
 </footer>
+<script>
+  (function () {
+    const SUPABASE_URL = "https://gvwawacjgghesljfzbph.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2d2F3YWNqZ2doZXNsamZ6YnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxNzc5MzMsImV4cCI6MjA3MDc1MzkzM30.8DuuYagtnjEcQYQfKiiO70nhfgzHdjYcPzWLycOOVyU";
+    const ENDPOINT = SUPABASE_URL + "/functions/v1/send-contact-email";
+
+    const form = document.getElementById("contact-form");
+    const status = document.getElementById("form-status");
+    const submitButton = document.getElementById("contact-submit");
+    const defaultButtonText = submitButton.textContent;
+
+    function setStatus(message, isError) {
+      status.textContent = message;
+      status.classList.toggle("is-error", Boolean(isError));
+      status.classList.toggle("is-success", !isError && message.length > 0);
+    }
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      setStatus("", false);
+
+      const honeypot = document.getElementById("company");
+      if (honeypot.value.trim()) {
+        setStatus("Message sent successfully.", false);
+        form.reset();
+        return;
+      }
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Sending...";
+
+      const payload = {
+        name: document.getElementById("name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        subject: document.getElementById("subject").value || undefined,
+        message: document.getElementById("message").value.trim()
+      };
+
+      try {
+        const response = await fetch(ENDPOINT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": "Bearer " + SUPABASE_ANON_KEY
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(function () { return {}; });
+          throw new Error(errorData.error || "Failed to send message.");
+        }
+
+        setStatus("Message sent successfully. A reply will follow soon.", false);
+        form.reset();
+      } catch (error) {
+        setStatus(error.message || "Failed to send message. Please try again.", true);
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = defaultButtonText;
+      }
+    });
+  }());
+</script>
 </body>
 </html>
